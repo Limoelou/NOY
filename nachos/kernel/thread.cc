@@ -199,7 +199,7 @@ Thread::~Thread()
 */
 
 //----------------------------------------------------------------------
-
+#ifndef ETUDIANTS_TP
 int Thread::Start(Process *owner,
 
 		  int32_t func, int arg)
@@ -213,8 +213,36 @@ int Thread::Start(Process *owner,
   exit(-1);
 
 }
+#endif
+
+#ifdef ETUDIANTS_TP
+int Thread::Start(Process *owner,
+
+		  int32_t func, int arg)
+
+{
+  ASSERT(process == NULL);
+
+  IntStatus old_level = g_machine->interrupt->SetStatus(INTERRUPTS_OFF);
+
+  process = owner;
+  process->numThreads++;
 
 
+  InitThreadContext(func, process->addrspace->StackAllocate(),arg);
+
+  InitSimulatorContext(AllocBoundedArray(SIMULATORSTACKSIZE), SIMULATORSTACKSIZE);
+
+  g_alive->Append(this);
+  g_scheduler->ReadyToRun(this);
+
+  g_machine->interrupt->SetStatus(old_level);
+    
+  return NO_ERROR;
+
+}
+
+#endif
 
 //----------------------------------------------------------------------
 
@@ -502,6 +530,7 @@ Thread::CheckOverflow()
 
 //----------------------------------------------------------------------
 
+#ifndef ETUDIANTS_TP
 void
 
 Thread::Finish ()
@@ -527,6 +556,32 @@ Thread::Finish ()
 
 
  }
+#endif
+
+#ifdef ETUDIANTS_TP
+void
+
+Thread::Finish ()
+
+{
+    IntStatus old_level = g_machine->interrupt->SetStatus(INTERRUPTS_OFF);
+
+    DEBUG('t', (char *)"Finishing thread \"%s\"\n", GetName());
+    
+    g_thread_to_be_destroyed = this;
+    void *temp;
+
+    while ((temp=g_alive->Remove()) != (void*)g_current_thread) {       
+	g_alive->Append(temp);     
+    }
+
+    Sleep();  // invokes SWITCH
+    // Go to sleep
+
+    g_machine->interrupt->SetStatus(old_level);
+ }
+
+#endif
 
 
 
@@ -700,6 +755,8 @@ Thread::Sleep ()
 
 //----------------------------------------------------------------------
 
+
+#ifndef ETUDIANTS_TP
 void
 
 Thread::SaveProcessorState()
@@ -711,6 +768,32 @@ Thread::SaveProcessorState()
   exit(-1);
 
 }
+#endif
+
+#ifdef ETUDIANTS_TP
+void
+
+Thread::SaveProcessorState()
+
+{
+    IntStatus old_level = g_machine->interrupt->SetStatus(INTERRUPTS_OFF);
+
+    for(int i = 0; i < NUM_INT_REGS; i++)
+    {
+	thread_context.int_registers[i] = g_machine->ReadIntRegister(i);
+    }
+
+    for(int j = 0; j < NUM_FP_REGS; j++)
+    {
+	thread_context.float_registers[j] = g_machine->ReadFPRegister(j);
+    }
+
+    thread_context.cc = g_machine->ReadCC();
+
+    g_machine->interrupt->SetStatus(old_level);
+
+}
+#endif
 
 
 
@@ -726,6 +809,7 @@ Thread::SaveProcessorState()
 
 
 
+#ifndef ETUDIANTS_TP
 void
 
 Thread::RestoreProcessorState()
@@ -737,8 +821,30 @@ Thread::RestoreProcessorState()
   exit(-1);
 
 }
+#endif
 
+#ifdef ETUDIANTS_TP
+void
 
+Thread::RestoreProcessorState()
+{
+    IntStatus old_level = g_machine->interrupt->SetStatus(INTERRUPTS_OFF);
+
+    for(int i = 0; i < NUM_INT_REGS; i++)
+    {
+	g_machine->WriteIntRegister(i, thread_context.int_registers[i]);
+    }
+
+    for(int j = 0; j < NUM_FP_REGS; j++)
+    {
+	g_machine->WriteFPRegister(j, thread_context.float_registers[j]);
+    }
+
+    g_machine->WriteCC(thread_context.cc);
+
+    g_machine->interrupt->SetStatus(old_level);
+}
+#endif
 
 //----------------------------------------------------------------------
 

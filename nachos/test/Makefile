@@ -12,7 +12,7 @@
 
 
 
-PROGRAMS = halt hello shell matmult sort
+PROGRAMS = halt hello shell matmult sort sync semaphore lock cond
 
 
 

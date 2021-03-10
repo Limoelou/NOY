@@ -73,7 +73,7 @@
 //-------------------------------------------------------------------------
 
 
-
+#ifndef ETUDIANTS_TP
 DriverACIA::DriverACIA()
 
 {
@@ -83,7 +83,34 @@ DriverACIA::DriverACIA()
   exit(-1);
 
 }
+#endif
 
+#ifdef ETUDIANTS_TP
+
+DriverACIA::DriverACIA()
+
+{/*
+    Semaphore *send_sema = new Semaphore((char*)"Send_Sema",1);
+
+   //BUSY_WAITING_MODE
+   if(g_cfg->useACIA == BUSY_WAITING_MODE)
+   {
+	DEBUG('d', (char*)"On entre en attente active");
+	receive_sema = new Semaphore((char*)"Rec_sema",1);
+	g_machine->acia->SetWorkingMode(BUSY_WAITING_MODE);
+
+   }
+
+   // INTERRUPT_MODE 
+   if(g_cfg->useACIA == ACIA_INTERRUPT)
+   {
+	DEBUG('d', (char*)"On entre en interruption");
+	receive_sema = new Semaphore((char*)"Rec_sema",0);
+	ind_rec = 0;
+   }
+*/
+}
+#endif
 
 
 //-------------------------------------------------------------------------
@@ -97,9 +124,8 @@ DriverACIA::DriverACIA()
 //-------------------------------------------------------------------------
 
 
-
+#ifndef ETUDIANTS_TP
 int DriverACIA::TtySend(char* buff)
-
 { 
 
   printf("**** Warning: method Tty_Send of the ACIA driver not implemented yet\n");
@@ -109,7 +135,57 @@ int DriverACIA::TtySend(char* buff)
   return 0;
 
 }
+#endif
 
+#ifdef ETUDIANTS_TP
+
+// J'ai changé le type de retour de int vers void comme dans le td
+int DriverACIA::TtySend(char* buff)
+{ 
+    DEBUG('d',(char*)"On souhaite envoyer une chaine !");
+
+    int i;
+
+    send_sema->P();
+
+    i = -1;
+    if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
+    {
+	do{
+	    while(g_machine->acia->getOutputStateReg() != EMPTY)
+	    {
+		DEBUG('d',(char*)"en attente active ...");	
+	    }
+
+	    g_machine->acia->PutChar(buff[i]);
+	    i++;
+
+	}while(buff[i] != '\0' && i < BUFFER_SIZE)
+
+    send_sema->V();
+    return i;
+
+    else if(g_machine->acia->GetWorkingMode == SEND_INTERRUPT || 
+    g_machine->acia->GetWorkingMode == REC_INTERRUPT)
+    {
+	DEBUG('d',(char*)"en attente passive ...");
+	ind_send = 0;
+
+	do{
+	    send_buffer[i] = buff[i];
+	    i++;
+	}while(buff[i] != '\0' && i < BUFFER_SIZE)
+
+	send_buffer[i] == '\0';
+	
+	g_machine->acia->PutChar(send_buffer(ind_send));
+	ind_send++;
+
+	return i;
+    }	
+    
+}
+#endif
 
 
 //-------------------------------------------------------------------------
@@ -125,7 +201,7 @@ int DriverACIA::TtySend(char* buff)
 //-------------------------------------------------------------------------
 
 
-
+#ifndef ETUDIANTS_TP
 int DriverACIA::TtyReceive(char* buff,int lg)
 
 {
@@ -137,6 +213,14 @@ int DriverACIA::TtyReceive(char* buff,int lg)
   return 0;
 
 }
+#endif
+
+#ifdef ETUDIANTS_TP
+int DriverACIA::TtyReceive(char* buff,int lg)
+{
+
+}
+#endif
 
 
 
@@ -157,7 +241,7 @@ int DriverACIA::TtyReceive(char* buff,int lg)
 //-------------------------------------------------------------------------
 
 
-
+#ifndef ETUDIANTS_TP
 void DriverACIA::InterruptSend()
 
 {
@@ -167,15 +251,20 @@ void DriverACIA::InterruptSend()
   exit(-1);
 
 }
+#endif
 
+#ifdef ETUDIANTS_TP
+void DriverACIA::InterruptSend()
 
+{
 
+}
+#endif
 //-------------------------------------------------------------------------
 
 // DriverACIA::Interrupt_receive()
 
-/*! Reception interrupt handler.
-
+/*
   Used in the ACIA Interrupt mode only. Reveices a character through the ACIA. 
 
   Releases the receive_sema semaphore and disables reception 
@@ -183,13 +272,12 @@ void DriverACIA::InterruptSend()
   interrupts when the last character of the message is received 
 
   (character '\0').
-
-  */
+*/
 
 //-------------------------------------------------------------------------
 
 
-
+#ifndef ETUDIANTS_TP
 void DriverACIA::InterruptReceive()
 
 {
@@ -199,4 +287,12 @@ void DriverACIA::InterruptReceive()
   exit(-1);
 
 }
+#endif
 
+#ifdef ETUDIANTS_TP
+void DriverACIA::InterruptReceive()
+
+{
+
+}
+#endif
