@@ -256,7 +256,19 @@ void DriverACIA::InterruptSend()
 void DriverACIA::InterruptSend()
 
 {
-
+    //si l'envoi est terminé
+    if(send_buffer[ind_send - 1] == '\0')
+    {
+	DEBUG('d',(char*)"on est à la fin du message à envoyer");
+	//on relâche le sémaphore d'émission
+	send_sema->V();
+    }
+    //sinon, on continue d'envoyer notre chaine
+    else
+    {
+	g_machine->acia->PutChar(send_buffer[ind_send]);
+	ind_send++;
+    }
 }
 #endif
 //-------------------------------------------------------------------------
@@ -292,6 +304,24 @@ void DriverACIA::InterruptReceive()
 void DriverACIA::InterruptReceive()
 
 {
+    //on récupère le prochain caractère à être reçu
+    char rec_char = g_machine->acia->GetChar();
+
+    //Si on arrive sur un caractère de fin ou à la taille max du buffer
+    if(send_buffer[ind_send - 1] == '\0' || ind_rec == (BUFFER_SIZE - 1))
+    {
+	DEBUG('d',(char*)"le message à envoyer est bien formé");
+	//on ajoute le caractère à la fin du buffer de réception
+	receive_buffer[ind_rec] = '\0';
+	//on relâche le sémaphore de réception
+	receive_sema->V();
+    }
+    //sinon, on continue de recevoir les caractères de la chaine
+    else
+    {
+	receive_buffer[ind_rec] = send_buffer[ind_send];
+	ind_rec++;
+    }
 
 }
 #endif
