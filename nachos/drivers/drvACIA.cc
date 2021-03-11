@@ -89,26 +89,26 @@ DriverACIA::DriverACIA()
 
 DriverACIA::DriverACIA()
 
-{/*
+{
     Semaphore *send_sema = new Semaphore((char*)"Send_Sema",1);
 
    //BUSY_WAITING_MODE
-   if(g_cfg->useACIA == BUSY_WAITING_MODE)
+   if(g_cfg->ACIA == BUSY_WAITING)
    {
 	DEBUG('d', (char*)"On entre en attente active");
 	receive_sema = new Semaphore((char*)"Rec_sema",1);
-	g_machine->acia->SetWorkingMode(BUSY_WAITING_MODE);
+	g_machine->acia->SetWorkingMode(BUSY_WAITING);
 
    }
 
    // INTERRUPT_MODE 
-   if(g_cfg->useACIA == ACIA_INTERRUPT)
+   if(g_cfg->ACIA == ACIA_INTERRUPT)
    {
 	DEBUG('d', (char*)"On entre en interruption");
 	receive_sema = new Semaphore((char*)"Rec_sema",0);
 	ind_rec = 0;
    }
-*/
+
 }
 #endif
 
@@ -152,7 +152,7 @@ int DriverACIA::TtySend(char* buff)
     if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
     {
 	do{
-	    while(g_machine->acia->getOutputStateReg() != EMPTY)
+	    while(g_machine->acia->getOutputStateReg != EMPTY)
 	    {
 		DEBUG('d',(char*)"en attente active ...");	
 	    }
@@ -160,13 +160,12 @@ int DriverACIA::TtySend(char* buff)
 	    g_machine->acia->PutChar(buff[i]);
 	    i++;
 
-	}while(buff[i] != '\0' && i < BUFFER_SIZE)
+	}while(buff[i] != '\0' && i < BUFFER_SIZE);
 
     send_sema->V();
     return i;
 
-    else if(g_machine->acia->GetWorkingMode == SEND_INTERRUPT || 
-    g_machine->acia->GetWorkingMode == REC_INTERRUPT)
+    else if(g_machine->acia->GetWorkingMode() == SEND_INTERRUPT || g_machine->acia->GetWorkingMode() == REC_INTERRUPT)
     {
 	DEBUG('d',(char*)"en attente passive ...");
 	ind_send = 0;
@@ -174,11 +173,11 @@ int DriverACIA::TtySend(char* buff)
 	do{
 	    send_buffer[i] = buff[i];
 	    i++;
-	}while(buff[i] != '\0' && i < BUFFER_SIZE)
+	}while(buff[i] != '\0' && i < BUFFER_SIZE);
 
 	send_buffer[i] == '\0';
 	
-	g_machine->acia->PutChar(send_buffer(ind_send));
+	g_machine->acia->PutChar(send_buffer[ind_send]);
 	ind_send++;
 
 	return i;
