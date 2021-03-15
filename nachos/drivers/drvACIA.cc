@@ -97,7 +97,7 @@ DriverACIA::DriverACIA()
 //-------------------------------------------------------------------------
 
 
-
+#ifndef ETUDIANTS_TP
 int DriverACIA::TtySend(char* buff)
 
 { 
@@ -109,8 +109,18 @@ int DriverACIA::TtySend(char* buff)
   return 0;
 
 }
+#endif
+
+#ifdef ETUDIANTS_TP
+int DriverACIA::TtySend(char* buff)
+
+{ 
 
 
+  return 0;
+
+}
+#endif
 
 //-------------------------------------------------------------------------
 
@@ -126,6 +136,7 @@ int DriverACIA::TtySend(char* buff)
 
 
 
+#ifndef ETUDIANTS_TP
 int DriverACIA::TtyReceive(char* buff,int lg)
 
 {
@@ -137,9 +148,26 @@ int DriverACIA::TtyReceive(char* buff,int lg)
   return 0;
 
 }
+#endif
 
+#ifdef ETUDIANTS_TP
+int DriverACIA::TtyReceive(char* buff,int lg)
 
+{
+  char EOL = 0;
+  char current;
 
+  for(int i = 0; i < lg; i++) {
+    while(!receive_sema); // attente active
+    current = GetChar();
+    buff[i] = current;
+    if(current == '\0')
+      break;
+  }
+  return i;
+}
+
+#endif
 
 
 //-------------------------------------------------------------------------
