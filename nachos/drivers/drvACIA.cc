@@ -228,17 +228,37 @@ int DriverACIA::TtyReceive(char* buff,int lg)
 int DriverACIA::TtyReceive(char* buff,int lg)
 
 {
-  char EOL = 0;
   char current;
 
-  for(int i = 0; i < lg; i++) {
-    while(!receive_sema); // attente active
-    current = GetChar();
-    buff[i] = current;
-    if(current == '\0')
-      break;
+  receive_sema->P();
+  //Check mode
+  if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
+  {
+
+    int i = 0;
+    do {
+      while(g_machine->acia->getOutputStateReg != EMPTY);
+      current = GetChar();
+      buff[i] = current;
+    }
+    while(current != '\0' && i < lg);
   }
+  //INTERRUPT MODE
+  else {
+    ind_rec = 0;
+    int i = 0;
+
+    while(ind_rec < lg)
+    {
+      receive_buffer[ind_rec] = buff[ind_rec];
+      ind_rec++;
+      i++;
+    }
+  }
+
+  receive_sema->V();
   return i;
+
 }
 
 #endif
