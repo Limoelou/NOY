@@ -240,9 +240,12 @@ Thread *oldThread = g_current_thread;
 
     // point, we were still running on the old thread's stack!
 
-  printf("**** Warning: thread actual deletion not implemented yet\n");
 
-
+    if(g_thread_to_be_destroyed != NULL)
+    {
+	delete g_thread_to_be_destroyed;
+	g_thread_to_be_destroyed = NULL;
+    }
 
 }
 

@@ -1,4 +1,3 @@
-
 /*! \file msgerror.h
 
     \brief Defines the data structure to store error messages during

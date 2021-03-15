@@ -58,51 +58,51 @@
 
  */
 
-#define SC_HALT		 0 // OK
+#define SC_HALT		 0 
 
-#define SC_EXIT		 1 // OK
+#define SC_EXIT		 1 
 
-#define SC_EXEC		 2 // OK
+#define SC_EXEC		 2 
 
-#define SC_JOIN		 3 // OK
+#define SC_JOIN		 3 
 
-#define SC_CREATE	 4 // OK
+#define SC_CREATE	 4 
 
-#define SC_OPEN		 5 // OK
+#define SC_OPEN		 5 
 
-#define SC_READ		 6 // OK
+#define SC_READ		 6 
 
-#define SC_WRITE	 7 // OK
+#define SC_WRITE	 7 
 
-#define SC_SEEK          8 // OK
+#define SC_SEEK          8
 
-#define SC_CLOSE	 9 // OK
+#define SC_CLOSE	 9 
 
-#define SC_NEW_THREAD	 10 // OK
+#define SC_NEW_THREAD	 10 
 
-#define SC_YIELD	 11 // OK
+#define SC_YIELD	 11
 
-#define SC_PERROR        12 // OK
+#define SC_PERROR        12
 
-#define SC_P             13 // OK
+#define SC_P             13 
 
-#define SC_V             14 // OK
+#define SC_V             14
 
-#define SC_SEM_CREATE    15 // OK
+#define SC_SEM_CREATE    15 
 
-#define SC_SEM_DESTROY   16 // OK
+#define SC_SEM_DESTROY   16
 
-#define SC_LOCK_CREATE	 17 // OK
+#define SC_LOCK_CREATE	 17 
 
-#define SC_LOCK_DESTROY	 18 // OK
+#define SC_LOCK_DESTROY	 18 
 
 #define SC_LOCK_ACQUIRE	 19 
 
 #define SC_LOCK_RELEASE	 20 
 
-#define SC_COND_CREATE	 21 // OK
+#define SC_COND_CREATE	 21 
 
-#define SC_COND_DESTROY	 22 // OK
+#define SC_COND_DESTROY	 22 
 
 #define SC_COND_WAIT	 23 
 
@@ -110,21 +110,21 @@
 
 #define SC_COND_BROADCAST 25
 
-#define SC_TTY_SEND	 26 // OK
+#define SC_TTY_SEND	 26
 
-#define SC_TTY_RECEIVE	 27 // OK
+#define SC_TTY_RECEIVE	 27
 
-#define SC_MKDIR	 28 // OK
+#define SC_MKDIR	 28
 
-#define SC_RMDIR	 29 // OK
+#define SC_RMDIR	 29
 
-#define SC_REMOVE        30 // OK
+#define SC_REMOVE        30
 
-#define SC_FSLIST        31 // OK
+#define SC_FSLIST        31
 
-#define SC_SYS_TIME	 32 // OK
+#define SC_SYS_TIME	 32 
 
-#define SC_MMAP		 33 // OK
+#define SC_MMAP		 33 
 
 
 

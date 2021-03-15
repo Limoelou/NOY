@@ -1253,7 +1253,389 @@ void ExceptionHandler(ExceptionType exceptiontype, int vaddr)
 	  break;
 
 	}
+#ifdef ETUDIANTS_TP
+	case SC_P:{
+	    DEBUG('e', (char*)"SEM: P working ...\n");
 
+	    int id = g_machine->ReadIntRegister(4);
+	    Semaphore *sem = (Semaphore*) g_object_ids->SearchObject(id);
+
+	    if(sem && sem->type == SEMAPHORE_TYPE)
+	    {
+
+		DEBUG('e', (char*)"SEM: P, we have a valid semaphore : %s\n",
+			sem->getName());
+		sem->P();
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"SEM: P is null ...\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		
+	    }
+	    break;
+	}
+
+	case SC_V:{
+
+	    DEBUG('e', (char*)"SEM: V working ...\n");
+
+	    //on récupère le paramètre
+	    int32_t id = g_machine->ReadIntRegister(4);
+	    Semaphore *sem = (Semaphore*) g_object_ids->SearchObject(id);
+
+	    if(sem && sem->type == SEMAPHORE_TYPE)
+	    {
+
+		DEBUG('e', (char*)"SEM: P, we have a valid semaphore : %s\n",
+			sem->getName());
+		sem->V();
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"SEM: invalid semaphore id : %d\n", id);
+		g_machine->WriteIntRegister(2,INVALID_SEMAPHORE_ID);
+	    }
+	
+	    break;
+	}
+	    //mettre à jour le registre 2 si retour de func
+	
+	case SC_SEM_CREATE:{
+
+	    DEBUG('e', (char*)"SEM: creating sem ...\n");
+
+	    //on récupère le paramètre
+	    int size;
+
+	    int addr;
+
+	    addr = g_machine->ReadIntRegister(4);
+
+	    size = GetLengthParam(addr);
+
+	    char debug_name[size];
+
+	    GetStringParam(addr,debug_name,size);
+
+	    int count = g_machine->ReadIntRegister(5);
+
+	    if(count < 0)
+	    {
+		DEBUG('e', (char*)"error: negative sem value at creation ...\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+	    }
+
+	    else
+	    {
+		DEBUG('e', (char*)"SEM: P, new semaphore id !");
+
+		Semaphore *sem = new Semaphore(debug_name, count);
+
+		int sem_id = g_object_ids->AddObject(sem);
+		g_machine->WriteIntRegister(2,sem_id);
+
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    break;
+	}
+
+	case SC_SEM_DESTROY:{
+
+	    DEBUG('e', (char*)"SEM: destroying sem ...\n");
+
+	    //on récupère le paramètre
+	    int sem_id = g_machine->ReadIntRegister(4);
+	    Semaphore *sem = (Semaphore*) g_object_ids->SearchObject(sem_id);
+
+	    if(sem && sem->type == SEMAPHORE_TYPE)
+	    {
+
+		DEBUG('e', (char*)"SEM: %d destroyed : %d\n,", sem_id);
+
+		g_object_ids->RemoveObject(sem_id);
+		delete sem;
+
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error: can't destroy semaphore, no semaphore found\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_SEMAPHORE_ID);
+	    }
+
+	    break;
+	}
+
+	case SC_COND_CREATE:{
+	    
+	    DEBUG('e', (char*)"COND: creating cond ...\n");
+
+	    //on récupère le paramètre
+	    int size;
+
+	    int addr;
+
+	    addr = g_machine->ReadIntRegister(4);
+
+	    size = GetLengthParam(addr);
+
+	    char debug_name[size];
+
+	    GetStringParam(addr,debug_name,size);
+
+	    Condition *cond = new Condition(debug_name);
+
+
+	    int32_t cond_id = g_object_ids->AddObject(cond);
+	    g_machine->WriteIntRegister(2,cond_id);
+
+	    g_syscall_error->SetMsg((char*)"",NO_ERROR);
+
+	    break;
+	}
+
+	case SC_COND_DESTROY:{
+
+	    DEBUG('e', (char*)"COND: destroying cond ...\n");
+
+	    //on récupère le paramètre
+	    int cond_id = g_machine->ReadIntRegister(4);
+	    Condition *cond = (Condition*) g_object_ids->SearchObject(cond_id);
+
+	    if(cond && cond->type == CONDITION_TYPE)
+	    {
+
+		DEBUG('e', (char*)"COND: %d destroyed : %d\n,", cond_id);
+
+		g_object_ids->RemoveObject(cond_id);
+		delete cond;
+
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error: can't destroy cond, no condition found\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_CONDITION_ID);
+	    }
+
+	    break;
+	}
+
+	case SC_COND_WAIT:{
+
+	    DEBUG('e', (char*)"COND: wait for cond ...\n");
+
+	    //on récupère le paramètre
+	    int cond_id = g_machine->ReadIntRegister(4);
+	    Condition *cond = (Condition*) g_object_ids->SearchObject(cond_id);
+
+	    if(cond && cond->type == CONDITION_TYPE)
+	    {
+
+		DEBUG('e', (char*)"COND: %d waiting : %d\n,", cond_id);
+
+		cond->Wait();
+		    
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error on wait cond\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_CONDITION_ID);
+	    }
+
+	    break;
+	}
+
+	case SC_COND_SIGNAL:{
+
+	    DEBUG('e', (char*)"COND: signal ...\n");
+
+	    //on récupère le paramètre
+	    int cond_id = g_machine->ReadIntRegister(4);
+	    Condition *cond = (Condition*) g_object_ids->SearchObject(cond_id);
+
+	    if(cond && cond->type == CONDITION_TYPE)
+	    {
+
+		DEBUG('e', (char*)"COND: signal on cond %d  : %d\n,", cond_id);
+
+		cond->Signal();
+		    
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error on signal cond\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_CONDITION_ID);
+	    }
+
+	    break;
+	}
+
+	case SC_COND_BROADCAST:{
+
+	    DEBUG('e', (char*)"COND: broadcast ...\n");
+
+	    //on récupère le paramètre
+	    int cond_id = g_machine->ReadIntRegister(4);
+	    Condition *cond = (Condition*) g_object_ids->SearchObject(cond_id);
+
+	    if(cond && cond->type == CONDITION_TYPE)
+	    {
+
+		DEBUG('e', (char*)"COND: broadcast on cond %d  : %d\n,", cond_id);
+
+		cond->Broadcast();
+		    
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error on broadcast in cond\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_CONDITION_ID);
+	    }
+
+	    break;
+	}
+
+	case SC_LOCK_RELEASE:{
+
+	    DEBUG('e', (char*)"LOCK: release ...\n");
+
+	    //on récupère le paramètre
+	    int lock_id = g_machine->ReadIntRegister(4);
+	    Lock *lock = (Lock*) g_object_ids->SearchObject(lock_id);
+
+	    if(lock && lock->type == LOCK_TYPE)
+	    {
+
+		DEBUG('e', (char*)"LOCK: lock %d released : %d\n,", lock_id);
+
+		lock->Release();
+		    
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error on release lock\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_LOCK_ID);
+	    }
+
+	    break;
+	}
+
+	case SC_LOCK_ACQUIRE:{
+
+	    DEBUG('e', (char*)"LOCK: acquire ...\n");
+
+	    //on récupère le paramètre
+	    int lock_id = g_machine->ReadIntRegister(4);
+	    Lock *lock = (Lock*) g_object_ids->SearchObject(lock_id);
+
+	    if(lock && lock->type == LOCK_TYPE)
+	    {
+
+		DEBUG('e', (char*)"LOCK: lock %d acquired : %d\n,", lock_id);
+
+		lock->Acquire();
+		    
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error on acquire lock\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_LOCK_ID);
+	    }
+
+	    break;
+	}
+
+	case SC_LOCK_CREATE:{
+	    DEBUG('e', (char*)"LOCK: creating lock ...\n");
+
+	    //on récupère le paramètre
+	    int size;
+
+	    int addr;
+
+	    addr = g_machine->ReadIntRegister(4);
+
+	    size = GetLengthParam(addr);
+
+	    char debug_name[size];
+
+	    GetStringParam(addr,debug_name,size);
+	    Lock *lock = new Lock(debug_name);
+
+
+	    int32_t lock_id = g_object_ids->AddObject(lock);
+	    g_machine->WriteIntRegister(2,lock_id);
+
+	    g_syscall_error->SetMsg((char*)"",NO_ERROR);
+
+	    break;
+	}
+
+	case SC_LOCK_DESTROY:{
+
+	    DEBUG('e', (char*)"LOCK: destroying lock ...\n");
+
+	    //on récupère le paramètre
+	    int lock_id = g_machine->ReadIntRegister(4);
+	    Lock *lock = (Lock*) g_object_ids->SearchObject(lock_id);
+
+	    if(lock && lock->type == LOCK_TYPE)
+	    {
+
+		DEBUG('e', (char*)"LOCK: %d destroyed : %d\n,", lock_id);
+
+		g_object_ids->RemoveObject(lock_id);
+		delete lock;
+
+		g_machine->WriteIntRegister(2,NO_ERROR);
+		g_syscall_error->SetMsg((char*)"",NO_ERROR);
+	    }
+	    else
+	    {
+		DEBUG('e', (char*)"error: can't destroy lock, no condition found\n");
+		
+		g_machine->WriteIntRegister(2,ERROR);
+		g_syscall_error->SetMsg((char*)"",INVALID_LOCK_ID);
+	    }
+
+	    break;
+	}
+
+#endif
 
 
        default:
@@ -1385,8 +1767,6 @@ void ExceptionHandler(ExceptionType exceptiontype, int vaddr)
     }
 
     break;
-
-    
 
   default:
 
