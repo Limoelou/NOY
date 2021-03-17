@@ -137,11 +137,12 @@ int DriverACIA::TtySend(char* buff)
 }
 #endif
 
-#ifdef ETUDIANTS_TP
+#ifndef ETUDIANTS_TP
 int DriverACIA::TtySend(char* buff)
 
 { 
     DEBUG('d',(char*)"On souhaite envoyer une chaine !");
+#endif
 
 #ifdef ETUDIANTS_TP
 
