@@ -189,12 +189,6 @@ int DriverACIA::TtySend(char* buff)
 
 	return i;
     }	
-    
-}
-#endif
-
-  return 0;
-
 }
 #endif
 
