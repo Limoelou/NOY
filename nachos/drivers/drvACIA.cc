@@ -232,7 +232,7 @@ int DriverACIA::TtyReceive(char* buff,int lg)
 
     int i = 0;
     do {
-      while(g_machine->acia->getOutputStateReg != EMPTY);
+      while(g_machine->acia->getInputStateReg == EMPTY);
       current = GetChar();
       buff[i] = current;
     }
@@ -249,6 +249,9 @@ int DriverACIA::TtyReceive(char* buff,int lg)
       ind_rec++;
       i++;
     }
+
+    // ??
+
   }
 
   receive_sema->V();
