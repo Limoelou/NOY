@@ -97,6 +97,7 @@ DriverACIA::DriverACIA()
    {
 	DEBUG('d', (char*)"On entre en attente active");
 	receive_sema = new Semaphore((char*)"Rec_sema",1);
+	printf("%p", receive_sema);
 	g_machine->acia->SetWorkingMode(BUSY_WAITING);
 
    }

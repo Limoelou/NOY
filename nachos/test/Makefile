@@ -12,7 +12,7 @@
 
 
 
-PROGRAMS = halt hello shell matmult sort sync semaphore lock cond
+PROGRAMS = halt hello shell matmult sort sync semaphore lock cond send receive ACIA_test_rec
 
 
 
