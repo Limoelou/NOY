@@ -107,6 +107,7 @@ DriverACIA::DriverACIA()
 	DEBUG('d', (char*)"On entre en interruption");
 	receive_sema = new Semaphore((char*)"Rec_sema",0);
 	ind_rec = 0;
+	g_machine->acia->SetWorkingMode(REC_INTERRUPT);
    }
 
 }
@@ -145,8 +146,6 @@ int DriverACIA::TtySend(char* buff)
 #endif
 
 #ifdef ETUDIANTS_TP
-
-// J'ai changé le type de retour de int vers void comme dans le td
 int DriverACIA::TtySend(char* buff)
 { 
     DEBUG('d',(char*)"On souhaite envoyer une chaine !");
@@ -155,11 +154,11 @@ int DriverACIA::TtySend(char* buff)
 
     send_sema->P();
 
-    i = -1;
+    i = 0;
     if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
     {
 	do{
-	    while(g_machine->acia->getOutputStateReg != EMPTY)
+	    while(g_machine->acia->GetOutputStateReg() != EMPTY)
 	    {
 		DEBUG('d',(char*)"en attente active ...");	
 	    }
@@ -167,10 +166,10 @@ int DriverACIA::TtySend(char* buff)
 	    g_machine->acia->PutChar(buff[i]);
 	    i++;
 
-	}while(buff[i] != '\0' && i < BUFFER_SIZE);
+	}while(buff[i - 1] != '\0' && i < BUFFER_SIZE);
 
-    send_sema->V();
-    return i;
+	send_sema->V();
+    }
 
     else if(g_machine->acia->GetWorkingMode() == SEND_INTERRUPT || g_machine->acia->GetWorkingMode() == REC_INTERRUPT)
     {
@@ -180,15 +179,14 @@ int DriverACIA::TtySend(char* buff)
 	do{
 	    send_buffer[i] = buff[i];
 	    i++;
-	}while(buff[i] != '\0' && i < BUFFER_SIZE);
+	}while(buff[i - 1] != '\0' && i < BUFFER_SIZE);
 
-	send_buffer[i] == '\0';
+	send_buffer[i - 1] = '\0';
 	
 	g_machine->acia->PutChar(send_buffer[ind_send]);
 	ind_send++;
-
-	return i;
     }	
+    return i;
 }
 #endif
 
@@ -223,39 +221,39 @@ int DriverACIA::TtyReceive(char* buff,int lg)
 int DriverACIA::TtyReceive(char* buff,int lg)
 
 {
+  if(lg <= 0){                                                          
+
+    return -1;                                                              
+  }
   char current;
 
   receive_sema->P();
   //Check mode
+  int i = 0;
   if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
   {
-
-    int i = 0;
     do {
-      while(g_machine->acia->getInputStateReg == EMPTY);
-      current = GetChar();
+      DEBUG('d',(char*)"en attente active ...");	
+      while(g_machine->acia->GetInputStateReg() == EMPTY);
+      current = g_machine->acia->GetChar();
       buff[i] = current;
     }
-    while(current != '\0' && i < lg);
+    while(current != '\0' && (i < lg));
+    return i;
   }
-  //INTERRUPT MODE
-  else {
+  else{
+    DEBUG('d',(char*)"en attente active ...");	
     ind_rec = 0;
-    int i = 0;
 
-    while(ind_rec < lg)
-    {
-      receive_buffer[ind_rec] = buff[ind_rec];
+    do{
+      buff[ind_rec] = receive_buffer[ind_rec];
       ind_rec++;
-      i++;
-    }
+    }while(buff[ind_rec] != '\0' && ind_rec < lg);
 
-    // ??
-
+    g_machine->acia->SetWorkingMode(g_machine->acia->GetWorkingMode());
+    receive_sema->V();
+    return ind_rec;
   }
-
-  receive_sema->V();
-  return i;
 
 }
 
@@ -299,6 +297,7 @@ void DriverACIA::InterruptSend()
 	DEBUG('d',(char*)"on est à la fin du message à envoyer");
 	//on relâche le sémaphore d'émission
 	send_sema->V();
+	g_machine->acia->SetWorkingMode(SEND_INTERRUPT|g_machine->acia->GetWorkingMode());
     }
     //sinon, on continue d'envoyer notre chaine
     else
@@ -345,20 +344,20 @@ void DriverACIA::InterruptReceive()
     char rec_char = g_machine->acia->GetChar();
 
     //Si on arrive sur un caractère de fin ou à la taille max du buffer
-    if(send_buffer[ind_send - 1] == '\0' || ind_rec == (BUFFER_SIZE - 1))
+    if(rec_char == '\0' || ind_rec == (BUFFER_SIZE - 1))
     {
 	DEBUG('d',(char*)"le message à envoyer est bien formé");
 	//on ajoute le caractère à la fin du buffer de réception
 	receive_buffer[ind_rec] = '\0';
+	g_machine->acia->SetWorkingMode(g_machine->acia->GetWorkingMode()^REC_INTERRUPT);
 	//on relâche le sémaphore de réception
 	receive_sema->V();
     }
     //sinon, on continue de recevoir les caractères de la chaine
     else
     {
-	receive_buffer[ind_rec] = send_buffer[ind_send];
+	receive_buffer[ind_rec] = rec_char;
 	ind_rec++;
     }
-
 }
 #endif
