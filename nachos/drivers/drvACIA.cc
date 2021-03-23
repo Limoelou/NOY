@@ -90,10 +90,10 @@ DriverACIA::DriverACIA()
 DriverACIA::DriverACIA()
 
 {
-    Semaphore *send_sema = new Semaphore((char*)"Send_Sema",1);
+    send_sema = new Semaphore((char*)"Send_Sema",1);
 
    //BUSY_WAITING_MODE
-   if(g_cfg->ACIA == BUSY_WAITING)
+   if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
    {
 	DEBUG('d', (char*)"On entre en attente active");
 	receive_sema = new Semaphore((char*)"Rec_sema",1);
@@ -103,7 +103,7 @@ DriverACIA::DriverACIA()
    }
 
    // INTERRUPT_MODE 
-   if(g_cfg->ACIA == ACIA_INTERRUPT)
+   if(g_machine->acia->GetWorkingMode() == ACIA_INTERRUPT)
    {
 	DEBUG('d', (char*)"On entre en interruption");
 	receive_sema = new Semaphore((char*)"Rec_sema",0);
@@ -227,14 +227,15 @@ int DriverACIA::TtyReceive(char* buff,int lg)
     return -1;                                                              
   }
   char current;
-
+  printf("Rec semaphore addr: %p", receive_sema);
+  DEBUG('d',(char*)"rec sema addr: %p\n", receive_sema);	
+  DEBUG('d',(char*)"send sema addr: %p\n", send_sema);	
   receive_sema->P();
   //Check mode
   int i = 0;
   if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
   {
     do {
-      DEBUG('d',(char*)"en attente active ...");	
       while(g_machine->acia->GetInputStateReg() == EMPTY);
       current = g_machine->acia->GetChar();
       buff[i] = current;
