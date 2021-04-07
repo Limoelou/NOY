@@ -5,8 +5,9 @@
 int main(void)
 {
     char str[256];
-    n_printf("on est laaaaa");
-    unsigned int len = TtyReceive(str,256);
-    n_printf("length received: %lu\nmessage received: %s", len, str);
+
+    n_printf("en attente de send ...\n");
+    int len = TtyReceive(str,256);
+    n_printf("length received: %d\n message received: %s\n", len, str);
     return 0;
 }

@@ -90,10 +90,10 @@ DriverACIA::DriverACIA()
 DriverACIA::DriverACIA()
 
 {
-    Semaphore *send_sema = new Semaphore((char*)"Send_Sema",1);
+    send_sema = new Semaphore((char*)"Send_Sema",1);
 
    //BUSY_WAITING_MODE
-   if(g_cfg->ACIA == BUSY_WAITING)
+   if(g_cfg->ACIA == ACIA_BUSY_WAITING)
    {
 	DEBUG('d', (char*)"On entre en attente active");
 	receive_sema = new Semaphore((char*)"Rec_sema",1);
@@ -156,14 +156,11 @@ int DriverACIA::TtySend(char* buff)
     send_sema->P();
 
     i = 0;
-    if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
+    if(g_cfg->ACIA == ACIA_BUSY_WAITING)
     {
 	do{
 	    while(g_machine->acia->GetOutputStateReg() != EMPTY)
-	    {
-		DEBUG('d',(char*)"en attente active ...");	
-	    }
-
+	    DEBUG('d',(char*)"en attente active ...");	
 	    g_machine->acia->PutChar(buff[i]);
 	    i++;
 
@@ -172,11 +169,11 @@ int DriverACIA::TtySend(char* buff)
 	send_sema->V();
     }
 
-    else if(g_machine->acia->GetWorkingMode() == SEND_INTERRUPT || g_machine->acia->GetWorkingMode() == REC_INTERRUPT)
+    else if(g_cfg->ACIA == ACIA_INTERRUPT)
     {
 	DEBUG('d',(char*)"en attente passive ...");
 	ind_send = 0;
-
+	g_machine->acia->SetWorkingMode(SEND_INTERRUPT|g_machine->acia->GetWorkingMode());
 	do{
 	    send_buffer[i] = buff[i];
 	    i++;
@@ -227,19 +224,22 @@ int DriverACIA::TtyReceive(char* buff,int lg)
     return -1;                                                              
   }
   char current;
-
+  printf("Rec semaphore addr: %p", receive_sema);
+  DEBUG('d',(char*)"rec sema addr: %p\n", receive_sema);	
+  DEBUG('d',(char*)"send sema addr: %p\n", send_sema);	
   receive_sema->P();
   //Check mode
   int i = 0;
   if(g_machine->acia->GetWorkingMode() == BUSY_WAITING)
   {
     do {
-      DEBUG('d',(char*)"en attente active ...");	
       while(g_machine->acia->GetInputStateReg() == EMPTY);
       current = g_machine->acia->GetChar();
+      DEBUG('d', (char*)"char received : %c\n", current);
       buff[i] = current;
+      i++;
     }
-    while(current != '\0' && (i < lg));
+    while(current != '\0' && (i < lg - 1));
     return i;
   }
   else{

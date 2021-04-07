@@ -1,3 +1,5 @@
 *.tar.bz2
 *.pdf
 *.o
+*.a
+Makefile.config

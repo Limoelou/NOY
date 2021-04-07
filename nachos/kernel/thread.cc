@@ -787,7 +787,7 @@ Thread::SaveProcessorState()
     {
 	thread_context.float_registers[j] = g_machine->ReadFPRegister(j);
     }
-
+    
     thread_context.cc = g_machine->ReadCC();
 
     g_machine->interrupt->SetStatus(old_level);
@@ -839,6 +839,8 @@ Thread::RestoreProcessorState()
     {
 	g_machine->WriteFPRegister(j, thread_context.float_registers[j]);
     }
+
+    g_machine->mmu->translationTable = this->GetProcessOwner()->addrspace->translationTable;
 
     g_machine->WriteCC(thread_context.cc);
 

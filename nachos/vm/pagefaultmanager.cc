@@ -80,6 +80,7 @@ PageFaultManager::~PageFaultManager() {
 
 */  
 
+#ifndef ETUDIANTS_TP
 ExceptionType PageFaultManager::PageFault(uint32_t virtualPage) 
 
 {
@@ -91,7 +92,48 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
     return ((ExceptionType)0);
 
 }
+#endif
 
+#ifdef ETUDIANTS_TP
+
+ExceptionType PageFaultManager::PageFault(uint32_t virtualPage) 
+
+{
+    // chercher la page sur le disk
+
+
+
+    int addr_disk = g_machine->translationtable->getAddrDisk(virtualPage);
+    bool bit_swap = g_machine->translationtable->getBitSwap(virtualPage);
+    //la page est dans la zone de swap
+    if(swap == 1)
+    {
+	//addr disk contient le numéro de la page à récupérer dans le swap
+	//(numéro du secteur sur disque)
+	if(addr_disk == -1)
+	{
+	    //voleur de page, il faut attendre que addr_disk soit positionné
+	    //à une autre valeur
+	}
+
+    }
+    else
+    {
+	if(addr_disk == -1)
+	{
+	    //page anonyme (pile d'un contexte utilisateur d'un thread ou non
+	    //initialisé)
+	    //
+	}
+	else
+	    {
+	    //page est à charger dans l'executable, addr_disk contient
+	    //l'addresse de la page à charger depuis le fichier
+
+	}
+    }
+
+}
 
 
 
