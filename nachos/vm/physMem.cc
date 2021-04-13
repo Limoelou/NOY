@@ -239,6 +239,7 @@ void PhysicalMemManager::ChangeOwner(long numPage, Thread* owner) {
 //-----------------------------------------------------------------
 
 int PhysicalMemManager::AddPhysicalToVirtualMapping(AddrSpace* owner,int virtualPage) 
+#ifndef ETUDIANTS_TP
 
 {
 
@@ -250,7 +251,22 @@ int PhysicalMemManager::AddPhysicalToVirtualMapping(AddrSpace* owner,int virtual
 
 }
 
+#endif
 
+#ifdef ETUDIANTS_TP
+{
+    int free_page = FindFreePage();
+    if(free_page == -1)
+    {
+	DEBUG('v',(char *)"Eviction d'une page\n", virtualPage, free_page);
+	free_page = EvictPage();
+    }
+    tpr[free_page].virtualPage = virtualPage;
+    tpr[free_page].locked = true;
+    tpr[free_page].owner = owner;
+    return free_page;
+}
+#endif
 
 //-----------------------------------------------------------------
 

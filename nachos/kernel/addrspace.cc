@@ -389,9 +389,9 @@ AddrSpace::AddrSpace(OpenFile * exec_file, Process *p, int *err)
 
 	    // Read it from the disk
 
-	    exec_file->ReadAt((char *)&(g_machine->mainMemory[translationTable->getPhysicalPage(virt_page)*g_cfg->PageSize]),
+	      exec_file->ReadAt((char *)&(g_machine->mainMemory[translationTable->getPhysicalPage(virt_page)*g_cfg->PageSize]),
 
-			      g_cfg->PageSize, section_table[i].sh_offset + pgdisk*g_cfg->PageSize);
+	      g_cfg->PageSize, section_table[i].sh_offset + pgdisk*g_cfg->PageSize);
 
 
 
@@ -458,7 +458,7 @@ AddrSpace::AddrSpace(OpenFile * exec_file, Process *p, int *err)
 	    // The section has an image in the executable file
 
 	    // Read it from the disk
-	    translationTable->setAddrDisk(virtual_page, section_table[i].sh_offset + pgdisk*g_cfg->PageSize);
+	    translationTable->setAddrDisk(virt_page, section_table[i].sh_offset + pgdisk*g_cfg->PageSize);
 
 	  }
 
@@ -467,7 +467,7 @@ AddrSpace::AddrSpace(OpenFile * exec_file, Process *p, int *err)
 	    // The section does not have an image in the executable
 
 	    // Fill it with zeroes
-	    translationTable->setAddrDisk(virtual_page, -1);
+	    translationTable->setAddrDisk(virt_page, -1);
 
 	  }
 
@@ -687,7 +687,7 @@ int AddrSpace::StackAllocate(void)
     #endif
     #ifdef ETUDIANTS_TP
 
-    translationTable->ClearBitValid(i);
+    translationTable->clearBitValid(i);
 
     translationTable->setAddrDisk(i,-1);
 

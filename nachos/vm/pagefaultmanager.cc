@@ -131,7 +131,7 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
 	{
 	    //page anonyme (pile d'un contexte utilisateur d'un thread ou non
 	    //initialisé)
-	    memset(page_temp, 0x0, taillePages);
+	    memset(page_temp, 0x0, page_size);
 	}
 	else
 	{
@@ -142,8 +142,26 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
 	}
     }
 
-    // 
+    int pp = g_physical_mem_manager->AddPhysicalToVirtualMapping(g_current_thread->GetProcessOwner()->addrspace, virtualPage);
 
+    if(pp == -1) { 
+	printf("Not enough free space to load program %s\n", g_current_thread->GetProcessOwner()->exec_file->GetName());
+
+	g_machine->interrupt->Halt(-1);
+    }
+
+	
+    tt->setAddrDisk(virtualPage,-1);
+
+    tt->setBitValid(virtualPage);
+
+    tt->clearBitSwap(virtualPage);
+
+    tt->setBitReadAllowed(virtualPage);
+
+    tt->setBitWriteAllowed(virtualPage);
+
+    tt->clearBitIo(virtualPage);
 }
 
 #endif
