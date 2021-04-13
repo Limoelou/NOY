@@ -331,6 +331,7 @@ AddrSpace::AddrSpace(OpenFile * exec_file, Process *p, int *err)
 	{
 
 
+	#ifndef ETUDIANTS_TP
 
 	  /* Without demand paging */
 
@@ -427,7 +428,63 @@ AddrSpace::AddrSpace(OpenFile * exec_file, Process *p, int *err)
 	  
 
 	  /* End of code without demand paging */
+	#endif
+	#ifdef ETUDIANTS_TP
 
+	  /* Without demand paging */
+
+	  
+
+	  // Set up default values for the page table entry
+
+	  translationTable->clearBitSwap(virt_page);
+
+	  translationTable->setBitReadAllowed(virt_page);
+
+	  if (section_table[i].sh_flags & SHF_WRITE)
+
+	    translationTable->setBitWriteAllowed(virt_page);
+
+	  else translationTable->clearBitWriteAllowed(virt_page);
+
+	  // The SHT_NOBITS flag indicates if the section has an image
+
+	  // in the executable file (text or data section) or not 
+
+	  // (bss section)
+
+	  if (section_table[i].sh_type != SHT_NOBITS) {
+
+	    // The section has an image in the executable file
+
+	    // Read it from the disk
+	    translationTable->setAddrDisk(virtual_page, section_table[i].sh_offset + pgdisk*g_cfg->PageSize);
+
+	  }
+
+	  else {
+
+	    // The section does not have an image in the executable
+
+	    // Fill it with zeroes
+	    translationTable->setAddrDisk(virtual_page, -1);
+
+	  }
+
+	  
+
+	  // The page has been loded in physical memory but
+
+	  // later-on will be saved in the swap disk. We have to indicate this
+
+	  // in the translation table
+
+	  translationTable->clearBitIo(virt_page);
+
+	  translationTable->clearBitValid(virt_page);
+
+	  /* End of code without demand paging */
+	#endif
 	}
 
     }
@@ -581,7 +638,7 @@ int AddrSpace::StackAllocate(void)
 
 
   for (int i = stackBasePage ; i < (stackBasePage + numPages) ; i++) {
-
+  #ifndef ETUDIANTS_TP
     /* Without demand paging */
 
 
@@ -590,11 +647,11 @@ int AddrSpace::StackAllocate(void)
 
     int pp = g_physical_mem_manager->FindFreePage();
 
-    if (pp == -1) { 
+    if (pp == -2) { 
 
       printf("Not enough free space to load stack\n");
 
-      g_machine->interrupt->Halt(-1);
+      g_machine->interrupt->Halt(-2);
 
     }
 
@@ -627,7 +684,22 @@ int AddrSpace::StackAllocate(void)
     translationTable->clearBitIo(i);
 
     /* End of code without demand paging */
+    #endif
+    #ifdef ETUDIANTS_TP
 
+    translationTable->ClearBitValid(i);
+
+    translationTable->setAddrDisk(i,-1);
+
+    translationTable->clearBitSwap(i);
+
+    translationTable->setBitReadAllowed(i);
+
+    translationTable->setBitWriteAllowed(i);
+
+    translationTable->clearBitIo(i);
+
+    #endif
     }
 
 

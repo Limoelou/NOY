@@ -103,10 +103,21 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
 
 
 
+    addPhysicaltoVirtualMapping(A
     int addr_disk = g_machine->translationtable->getAddrDisk(virtualPage);
     bool bit_swap = g_machine->translationtable->getBitSwap(virtualPage);
+    Addrspace* addrspace = process->addrspace;
+    translationTable *tradtable = addrspace->translationTable;
+
+    addPhysicaltoVirtualMapping(addrspace,
+    
+    int IO_bit = tradtable->getBitIO;
+    if(IO_bit)
+    {
+
+    }
     //la page est dans la zone de swap
-    if(swap == 1)
+    if(bit_swap == 1)
     {
 	//addr disk contient le numéro de la page à récupérer dans le swap
 	//(numéro du secteur sur disque)
@@ -115,6 +126,11 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
 	    //voleur de page, il faut attendre que addr_disk soit positionné
 	    //à une autre valeur
 	}
+	else
+	{
+	    
+        }
+    }
 
     }
     else
@@ -134,6 +150,7 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
     }
 
 }
+#endif
 
 
 
