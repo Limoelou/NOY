@@ -255,15 +255,20 @@ int PhysicalMemManager::AddPhysicalToVirtualMapping(AddrSpace* owner,int virtual
 
 #ifdef ETUDIANTS_TP
 {
+    // check if there is a free page
     int free_page = FindFreePage();
+    // no free page -> eviction
     if(free_page == -1)
     {
 	DEBUG('v',(char *)"Eviction d'une page\n", virtualPage, free_page);
 	free_page = EvictPage();
     }
+
+    //update the entry in the physical page table
     tpr[free_page].virtualPage = virtualPage;
     tpr[free_page].locked = true;
     tpr[free_page].owner = owner;
+    DEBUG('v', (char*)"calling AddPhysicalToVirtualMapping, virtual page : %i, phys : %i\n", virtualPage, free_page);
     return free_page;
 }
 #endif
