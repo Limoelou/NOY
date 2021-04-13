@@ -5,6 +5,7 @@ void send(void)
 {
     char* str = "hello, my name is Vincent";
     TtySend(str);
+    printf("Debug: msg send");
 }
 
 int main(void)

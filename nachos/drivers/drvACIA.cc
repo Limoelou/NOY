@@ -243,17 +243,15 @@ int DriverACIA::TtyReceive(char* buff,int lg)
     return i;
   }
   else{
-    DEBUG('d',(char*)"en attente active ...");	
-    ind_rec = 0;
-
+    DEBUG('d',(char*)"en mode interruption...");	
+    i = 0;
     do{
-      buff[ind_rec] = receive_buffer[ind_rec];
-      ind_rec++;
+      buff[i] = receive_buffer[i];
+      i++;
     }while(buff[ind_rec] != '\0' && ind_rec < lg);
 
-    g_machine->acia->SetWorkingMode(g_machine->acia->GetWorkingMode());
-    receive_sema->V();
-    return ind_rec;
+    ind_rec = 0;
+    return i;
   }
 
 }

@@ -102,11 +102,15 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
     // chercher la page sur le disk
 
 
+    TranslationTable * tt = g_current_thread->GetProcessOwner()->addrspace->translationTable;
+    int addr_phys;
+    int addr_disk = tt->getAddrDisk(virtualPage);
+    bool bit_swap = tt->getBitSwap(virtualPage);
 
-    int addr_disk = g_machine->translationtable->getAddrDisk(virtualPage);
-    bool bit_swap = g_machine->translationtable->getBitSwap(virtualPage);
+    int page_size = g_cfg->PageSize;
+    char page_temp[page_size];
     //la page est dans la zone de swap
-    if(swap == 1)
+    if(bit_swap == 1)
     {
 	//addr disk contient le numéro de la page à récupérer dans le swap
 	//(numéro du secteur sur disque)
@@ -114,6 +118,10 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
 	{
 	    //voleur de page, il faut attendre que addr_disk soit positionné
 	    //à une autre valeur
+	}
+	else
+	{
+	    g_swap_manager->GetPageSwap(addr_disk, page_temp);
 	}
 
     }
@@ -123,19 +131,22 @@ ExceptionType PageFaultManager::PageFault(uint32_t virtualPage)
 	{
 	    //page anonyme (pile d'un contexte utilisateur d'un thread ou non
 	    //initialisé)
-	    //
+	    memset(page_temp, 0x0, taillePages);
 	}
 	else
-	    {
+	{
+	    g_current_thread->GetProcessOwner()->exec_file->ReadAt(page_temp, page_size, addr_disk);
 	    //page est à charger dans l'executable, addr_disk contient
 	    //l'addresse de la page à charger depuis le fichier
 
 	}
     }
 
+    // 
+
 }
 
-
+#endif
 
 
 
